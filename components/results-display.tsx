@@ -10,10 +10,14 @@ interface ResultsDisplayProps {
     grossYearlySalary: number
     effectiveTaxRate: number
     totalIncomeTax: number
+    federalTax: number
+    provincialTax: number
+    ontarioSurtax: number
     totalEI: number
     totalCPP: number
     totalCPP2: number
     yearlyNetPay: number
+    province: string
   }
   frequency: string
 }
@@ -76,6 +80,24 @@ export function ResultsDisplay({ results, frequency }: ResultsDisplayProps) {
                 <span className="text-gray-600">Income Tax:</span>
                 <span>{formatCurrency(results.totalIncomeTax)}</span>
               </div>
+              {results.federalTax > 0 && (
+                <div className="flex justify-between items-center pl-4 text-sm">
+                  <span className="text-gray-600">Federal Tax:</span>
+                  <span>{formatCurrency(results.federalTax)}</span>
+                </div>
+              )}
+              {results.provincialTax > 0 && (
+                <div className="flex justify-between items-center pl-4 text-sm">
+                  <span className="text-gray-600">{results.province} Tax:</span>
+                  <span>{formatCurrency(results.provincialTax - results.ontarioSurtax)}</span>
+                </div>
+              )}
+              {results.ontarioSurtax > 0 && (
+                <div className="flex justify-between items-center pl-4 text-sm">
+                  <span className="text-gray-600">Ontario Surtax:</span>
+                  <span>{formatCurrency(results.ontarioSurtax)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">EI Contribution:</span>
                 <span>{formatCurrency(results.totalEI)}</span>

@@ -114,3 +114,21 @@ export const provincialTaxBrackets = {
     { threshold: 129590, rate: 0.2575 },
   ],
 }
+
+export const federalBasicPersonalAmount = 14538
+
+export const provincialBasicPersonalAmount = {
+  Alberta: 21885,
+  "British Columbia": 12932,
+  Manitoba: 15780,
+  "New Brunswick": 12756,
+  "Newfoundland & Labrador": 10382,
+  "Nova Scotia": 11744,
+  Ontario: 12747,
+  "Prince Edward Island": 14250,
+  Quebec: 18056,
+  Saskatchewan: 18729,
+  "Northwest Territories": 16593,
+  Nunavut: 17925,
+  Yukon: 16129,
+}

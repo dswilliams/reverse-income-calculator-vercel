@@ -1,4 +1,9 @@
-import { federalTaxBrackets, provincialTaxBrackets } from "./constants"
+import {
+  federalTaxBrackets,
+  provincialTaxBrackets,
+  federalBasicPersonalAmount,
+  provincialBasicPersonalAmount,
+} from "./constants"
 
 interface CalculationParams {
   netPay: number
@@ -9,8 +14,12 @@ interface CalculationParams {
   cpp2Enabled: boolean
 }
 
-// Function 1: Income Tax Calculation
+// Update the calculateIncomeTax function to include Basic Personal Amount and Ontario Surtax
 export function calculateIncomeTax(grossYearlySalary: number, province: string) {
+  // Apply Basic Personal Amount deductions
+  const federalTaxableIncome = Math.max(0, grossYearlySalary - federalBasicPersonalAmount)
+  const provincialTaxableIncome = Math.max(0, grossYearlySalary - provincialBasicPersonalAmount[province])
+
   // Calculate Federal Tax
   let federalTax = 0
   for (let i = 0; i < federalTaxBrackets.length; i++) {
@@ -19,14 +28,14 @@ export function calculateIncomeTax(grossYearlySalary: number, province: string) 
 
     if (!nextBracket) {
       // Last bracket
-      federalTax += (grossYearlySalary - currentBracket.threshold) * currentBracket.rate
+      federalTax += Math.max(0, (federalTaxableIncome - currentBracket.threshold) * currentBracket.rate)
       break
     }
 
-    if (grossYearlySalary > nextBracket.threshold) {
-      federalTax += (nextBracket.threshold - currentBracket.threshold) * currentBracket.rate
+    if (federalTaxableIncome > nextBracket.threshold) {
+      federalTax += Math.max(0, (nextBracket.threshold - currentBracket.threshold) * currentBracket.rate)
     } else {
-      federalTax += (grossYearlySalary - currentBracket.threshold) * currentBracket.rate
+      federalTax += Math.max(0, (federalTaxableIncome - currentBracket.threshold) * currentBracket.rate)
       break
     }
   }
@@ -41,22 +50,43 @@ export function calculateIncomeTax(grossYearlySalary: number, province: string) 
 
     if (!nextBracket) {
       // Last bracket
-      provincialTax += (grossYearlySalary - currentBracket.threshold) * currentBracket.rate
+      provincialTax += Math.max(0, (provincialTaxableIncome - currentBracket.threshold) * currentBracket.rate)
       break
     }
 
-    if (grossYearlySalary > nextBracket.threshold) {
-      provincialTax += (nextBracket.threshold - currentBracket.threshold) * currentBracket.rate
+    if (provincialTaxableIncome > nextBracket.threshold) {
+      provincialTax += Math.max(0, (nextBracket.threshold - currentBracket.threshold) * currentBracket.rate)
     } else {
-      provincialTax += (grossYearlySalary - currentBracket.threshold) * currentBracket.rate
+      provincialTax += Math.max(0, (provincialTaxableIncome - currentBracket.threshold) * currentBracket.rate)
       break
     }
   }
 
-  const totalIncomeTax = federalTax + provincialTax
-  const effectiveTaxRate = totalIncomeTax / grossYearlySalary
+  // Calculate Ontario Surtax if applicable
+  let ontarioSurtax = 0
+  if (province === "Ontario") {
+    if (provincialTax > 7307) {
+      ontarioSurtax = (provincialTax - 5710) * 0.2 + (provincialTax - 7307) * 0.36
+    } else if (provincialTax > 5710) {
+      ontarioSurtax = (provincialTax - 5710) * 0.2
+    }
+  }
 
-  return { totalIncomeTax, effectiveTaxRate }
+  // Add Ontario Surtax to provincial tax if applicable
+  if (province === "Ontario") {
+    provincialTax += ontarioSurtax
+  }
+
+  const totalIncomeTax = federalTax + provincialTax
+  const effectiveTaxRate = grossYearlySalary > 0 ? totalIncomeTax / grossYearlySalary : 0
+
+  return {
+    totalIncomeTax,
+    effectiveTaxRate,
+    federalTax,
+    provincialTax,
+    ontarioSurtax: province === "Ontario" ? ontarioSurtax : 0,
+  }
 }
 
 // Function 2: EI Deduction Calculation
@@ -126,7 +156,10 @@ export function calculateGrossYearlySalary(params: CalculationParams) {
   }
 
   // Final calculation with the converged gross salary
-  const { totalIncomeTax, effectiveTaxRate } = calculateIncomeTax(estimatedGross, province)
+  const { totalIncomeTax, effectiveTaxRate, federalTax, provincialTax, ontarioSurtax } = calculateIncomeTax(
+    estimatedGross,
+    province,
+  )
   const totalEI = eiEnabled ? calculateEI(estimatedGross) : 0
   const totalCPP = cppEnabled ? calculateCPP(estimatedGross) : 0
   const totalCPP2 = cpp2Enabled ? calculateCPP2(estimatedGross) : 0
@@ -135,9 +168,13 @@ export function calculateGrossYearlySalary(params: CalculationParams) {
     grossYearlySalary: Math.round(estimatedGross),
     effectiveTaxRate,
     totalIncomeTax,
+    federalTax,
+    provincialTax,
+    ontarioSurtax,
     totalEI,
     totalCPP,
     totalCPP2,
     yearlyNetPay,
+    province,
   }
 }
