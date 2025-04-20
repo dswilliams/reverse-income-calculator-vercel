@@ -18,7 +18,7 @@ export function IncomeCalculator() {
   const [province, setProvince] = useState<string>("Ontario")
   const [eiEnabled, setEiEnabled] = useState<boolean>(true)
   const [cppEnabled, setCppEnabled] = useState<boolean>(true)
-  const [cpp2Enabled, setCpp2Enabled] = useState<boolean>(false)
+  const [cpp2Enabled, setCpp2Enabled] = useState<boolean>(true)
   const [isCalculating, setIsCalculating] = useState<boolean>(false)
   const [results, setResults] = useState<any>(null)
   const [error, setError] = useState<string>("")
