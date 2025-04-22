@@ -11,6 +11,7 @@ import { MapleLeaf } from "./maple-leaf"
 import { calculateGrossYearlySalary } from "@/lib/calculator"
 import { ResultsDisplay } from "./results-display"
 import { provinces, frequencies } from "@/lib/constants"
+import { Disclaimer } from "./disclaimer"
 
 export function IncomeCalculator() {
   const [netPay, setNetPay] = useState<string>("")
@@ -57,6 +58,7 @@ export function IncomeCalculator() {
 
   return (
     <div className="max-w-3xl mx-auto">
+      <Disclaimer />
       <Card className="shadow-lg border-red-100">
         <CardContent className="pt-6">
           <div className="grid gap-6">

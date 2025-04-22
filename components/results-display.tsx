@@ -136,6 +136,10 @@ export function ResultsDisplay({ results, frequency }: ResultsDisplayProps) {
               </div>
             </div>
           </div>
+          <div className="mt-6 text-xs text-gray-500 italic">
+            Note: These calculations are estimates. Your actual tax situation may vary. Please consult a tax
+            professional.
+          </div>
         </CardContent>
       </Card>
     </motion.div>
